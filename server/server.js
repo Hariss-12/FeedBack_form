@@ -1,6 +1,8 @@
 
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
+const dns = require("node:dns");
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -97,6 +99,15 @@ const startServer = async () => {
   try {
     if (!process.env.MONGODB_URI) {
       throw new Error("MONGODB_URI is missing");
+    }
+
+    const dnsServers = process.env.MONGODB_DNS_SERVERS
+      ?.split(",")
+      .map(server => server.trim())
+      .filter(Boolean);
+
+    if (dnsServers?.length) {
+      dns.setServers(dnsServers);
     }
 
     await mongoose.connect(process.env.MONGODB_URI);

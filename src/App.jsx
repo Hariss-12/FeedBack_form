@@ -1,6 +1,10 @@
+
 import React, { useState } from "react";
 import axios from "axios";
 import "./App.css";
+
+// Replace this with your deployed Render backend URL
+const API_URL = "https://feedback-form-8xf0.onrender.com";
 
 function App() {
   const [feedback, setFeedback] = useState({
@@ -11,31 +15,55 @@ function App() {
     q5: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (e) => {
-    setFeedback({
-      ...feedback,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    setFeedback((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      await axios.post("http://localhost:5000/api/feedback", feedback);
+      setLoading(true);
+
+      await axios.post(`${API_URL}/api/feedback`, feedback);
+
       alert("Feedback submitted successfully!");
-      setFeedback({ q1: "", q2: "", q3: "", q4: "", q5: "" });
+
+      setFeedback({
+        q1: "",
+        q2: "",
+        q3: "",
+        q4: "",
+        q5: "",
+      });
     } catch (error) {
-      console.error("Error submitting feedback:", error);
+      console.error(
+        "Error submitting feedback:",
+        error.response?.data || error.message
+      );
+
       alert("Failed to submit feedback. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="container">
       <h1>Feedback Form</h1>
+
       <form onSubmit={handleSubmit} className="feedback-form">
-        <label>Name:</label>
+
+        <label htmlFor="q1">Name:</label>
         <input
+          id="q1"
           type="text"
           name="q1"
           value={feedback.q1}
@@ -43,8 +71,9 @@ function App() {
           required
         />
 
-        <label>Department:</label>
+        <label htmlFor="q2">Department:</label>
         <input
+          id="q2"
           type="text"
           name="q2"
           value={feedback.q2}
@@ -52,8 +81,9 @@ function App() {
           required
         />
 
-        <label>Session Title:</label>
+        <label htmlFor="q3">Session Title:</label>
         <input
+          id="q3"
           type="text"
           name="q3"
           value={feedback.q3}
@@ -61,24 +91,29 @@ function App() {
           required
         />
 
-        <label>Feedback:</label>
-        <input
-          type="text"
+        <label htmlFor="q4">Feedback:</label>
+        <textarea
+          id="q4"
           name="q4"
           value={feedback.q4}
           onChange={handleChange}
           required
+          rows="4"
         />
 
-        <label>Suggestions:</label>
-        <input
-          type="text"
+        <label htmlFor="q5">Suggestions:</label>
+        <textarea
+          id="q5"
           name="q5"
           value={feedback.q5}
           onChange={handleChange}
+          rows="3"
         />
 
-        <button type="submit">Submit</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Submitting..." : "Submit"}
+        </button>
+
       </form>
     </div>
   );
