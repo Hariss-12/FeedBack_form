@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 import "./App.css";
 
@@ -16,6 +16,7 @@ function App() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,6 +29,7 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError("");
 
     try {
       setLoading(true);
@@ -49,7 +51,14 @@ function App() {
         error.response?.data || error.message
       );
 
-      alert("Failed to submit feedback. Please try again.");
+      if (error.response) {
+        const message = error.response.data?.message || "The server rejected the submission.";
+        setSubmitError(`Submission failed (HTTP ${error.response.status}): ${message}`);
+      } else if (error.request) {
+        setSubmitError("Could not reach the backend. It may be starting up; wait a minute and try again.");
+      } else {
+        setSubmitError("Could not submit feedback. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -114,6 +123,7 @@ function App() {
           {loading ? "Submitting..." : "Submit"}
         </button>
 
+        {submitError && <p className="submit-error" role="alert">{submitError}</p>}
       </form>
     </div>
   );
